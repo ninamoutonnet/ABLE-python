@@ -102,8 +102,6 @@ def crossCorr(video):
     # print(mu_Y)
     # print(sig_Y) ROUGHLY DIFFERENT: 1.4891315888426007 in python, 1.4906
 
-
-
     return image
 
 
