@@ -50,7 +50,7 @@ def crossCorr(video):
 
     # print(video_reshaped[8192000-20:8192000])
     # print(video_reshaped.shape)
-    image = np.empty((dim[0], dim[1]))
+    image = np.zeros((dim[0], dim[1]))
 
     for ii in range(dim[0]):
         for jj in range(dim[1]):
@@ -84,7 +84,11 @@ def crossCorr(video):
             Y = Y - mu_Y
             Y = Y/sig_Y
             X = (X - np.mean(X))/np.std(X)
-            image[ii,jj] = np.matmul(Y, np.transpose(X))
+
+            image[ii, jj] = np.dot((Y), np.transpose(X))
+
+    image = image/t_len
+    image = np.transpose(image)
     # print(raw_ts)
     # print(raw_ts.shape)
 
@@ -92,15 +96,15 @@ def crossCorr(video):
     # print(raw_ts_rs.shape)
     # print(a_del)
     # print(a_del.shape)
-    # print(Y)
     # print(Y.shape)
-    ## print(X)
+    # print(Y.shape)
+    # print(X.shape)
     # print(mu_Y)
     # print(sig_Y) ROUGHLY DIFFERENT: 1.4891315888426007 in python, 1.4906
-    print(image)
 
 
-    return
+
+    return image
 
 
 if __name__ == '__main__':
