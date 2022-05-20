@@ -62,9 +62,12 @@ def crossCorr(video):
             sub_loc_col2.insert(0, jj+1)
             sub_loc = np.array([sub_loc_col1, sub_loc_col2])
             ind_loc = sub2ind(dim, sub_loc_col1, sub_loc_col2)
-            vid_loc = np.zeros([ind_loc.size, t_len])
+            # vid_loc = np.zeros([ind_loc.size * t_len])
+            vid_loc = np.array([])
+            # vid_loc = np.zeros([ind_loc.size, t_len])
             for i in range(t_len):
-                vid_loc[:,i] = ind_loc + mods[i]
+                # vid_loc[:,i] = ind_loc + mods[i]
+                vid_loc = np.append(vid_loc, ind_loc + mods[i])
 
 
 
