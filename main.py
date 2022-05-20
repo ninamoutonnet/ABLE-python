@@ -1,5 +1,6 @@
 import numpy as np
 from skimage import io
+import skimage
 
 def initialise(name):
     return
@@ -105,6 +106,19 @@ def crossCorr(video):
     return image
 
 
+def initialise(metric, radius, alpha, blur_radius):
+    dim = metric.shape
+    maxSize = round(np.pi * pow(radius, 2) * 1.5)
+    print(maxSize)
+
+    # blur the image
+    metric = skimage.filters.gaussian(metric, sigma=blur_radius, mode = 'nearest', truncate=2.0)
+    print(metric)
+
+    # find the peaks of metric
+
+    return
+
 if __name__ == '__main__':
 
     video = io.imread('multipage_tif_resized.tif')     # (500,128,128)
@@ -114,4 +128,13 @@ if __name__ == '__main__':
     meanIm = np.mean(video, 2)
     # print(meanIm)
 
-    crossCorr(video)
+    corrIm = crossCorr(video)
+
+    '''Initialisation'''
+    # Parameters
+    radius = 7
+    alpha = 0.55
+    blur_radius = 1.5
+
+    phi_0 = initialise(corrIm, radius, alpha, blur_radius)
+
