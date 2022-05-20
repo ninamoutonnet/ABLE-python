@@ -50,6 +50,7 @@ def crossCorr(video):
 
     # print(video_reshaped[8192000-20:8192000])
     # print(video_reshaped.shape)
+    image = np.empty((dim[0], dim[1]))
 
     for ii in range(dim[0]):
         for jj in range(dim[1]):
@@ -63,15 +64,40 @@ def crossCorr(video):
             sub_loc = np.array([sub_loc_col1, sub_loc_col2])
             ind_loc = sub2ind(dim, sub_loc_col1, sub_loc_col2)
             # vid_loc = np.zeros([ind_loc.size * t_len])
-            vid_loc = np.array([])
+            vid_loc = np.empty([], dtype='int')
             # vid_loc = np.zeros([ind_loc.size, t_len])
             for i in range(t_len):
                 # vid_loc[:,i] = ind_loc + mods[i]
-                vid_loc = np.append(vid_loc, ind_loc + mods[i])
+                vid_loc = np.append(vid_loc, ind_loc + mods[i] - 1)
+                if i == 0:
+                    vid_loc = np.delete(vid_loc, 0)
 
+            raw_ts = np.take(video_reshaped, vid_loc)
+            raw_ts_rs = np.reshape(raw_ts, (t_len, ind_loc.size))
+            raw_ts_rs = np.transpose(raw_ts_rs)
 
+            a_del = np.delete(raw_ts_rs, 0, 0)
+            Y = np.mean(a_del, axis=0)
+            X = raw_ts_rs[0, :]
+            mu_Y = np.mean(Y)
+            sig_Y = np.std(Y)
+            Y = Y - mu_Y
+            Y = Y/sig_Y
+            X = (X - np.mean(X))/np.std(X)
+            image[ii,jj] = np.matmul(Y, np.transpose(X))
+    # print(raw_ts)
+    # print(raw_ts.shape)
 
-    print(vid_loc)
+    # print(raw_ts_rs)
+    # print(raw_ts_rs.shape)
+    # print(a_del)
+    # print(a_del.shape)
+    # print(Y)
+    # print(Y.shape)
+    ## print(X)
+    # print(mu_Y)
+    # print(sig_Y) ROUGHLY DIFFERENT: 1.4891315888426007 in python, 1.4906
+    print(image)
 
 
     return
