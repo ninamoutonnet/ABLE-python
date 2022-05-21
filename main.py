@@ -1,9 +1,10 @@
 import numpy as np
 from skimage import io
 import skimage
-
-def initialise(name):
-    return
+import matplotlib.pyplot as plt
+import skimage.morphology as morph
+from skimage.filters import threshold_otsu
+from scipy.ndimage import label
 
 
 def get_locs_in_range(sub_loc, dim):
@@ -106,16 +107,45 @@ def crossCorr(video):
     return image
 
 
+def imextendedmax(img, H):
+    mask = img.copy()
+    seed = mask - H
+    hmax = morph.reconstruction(seed, mask, method='dilation')
+    hmax = img - hmax
+    # threshold and convert into a binary image
+    img_thresh_otsu = hmax > 0.8*(np.max(hmax))
+
+    return img_thresh_otsu
+
+
 def initialise(metric, radius, alpha, blur_radius):
     dim = metric.shape
     maxSize = round(np.pi * pow(radius, 2) * 1.5)
-    print(maxSize)
+    # print(maxSize)
 
     # blur the image
     metric = skimage.filters.gaussian(metric, sigma=blur_radius, mode = 'nearest', truncate=2.0)
-    print(metric)
+    metric = np.array(metric)
+    # print(metric.shape)
 
     # find the peaks of metric
+    h = np.sqrt(np.nanvar(metric))
+    # print(h)
+
+    # replace the possible NaN values by 0
+    metric[np.isnan(metric)] = 0
+
+    BW = imextendedmax(metric, alpha * h)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.imshow(BW, aspect='auto', interpolation='nearest')
+    plt.show()
+
+    # perform connected component analysis
+    labeled_image, count = skimage.measure.label(BW, connectivity=2, return_num=True)
+    print(count)
+
+
 
     return
 
@@ -129,6 +159,10 @@ if __name__ == '__main__':
     # print(meanIm)
 
     corrIm = crossCorr(video)
+    print('Done producing the correlation image')
+
+    # plt.imshow(corrIm, interpolation='nearest')
+    # plt.show()
 
     '''Initialisation'''
     # Parameters
