@@ -4,8 +4,6 @@ import skimage
 import matplotlib.pyplot as plt
 import skimage.morphology as morph
 from skimage.filters import threshold_otsu
-from scipy.ndimage import label
-
 
 def get_locs_in_range(sub_loc, dim):
 
@@ -25,13 +23,11 @@ def get_locs_in_range(sub_loc, dim):
     # return sub_loc # this is the official return value, similar to the MATLAB code
     return col1, col2
 
-
 def sub2ind(array_shape, rows, cols):
     temp = np.add(rows, -1)
     temp = np.multiply(temp, array_shape[1])
     temp = np.add(temp, cols)
     return temp
-
 
 def crossCorr(video):
 
@@ -106,19 +102,46 @@ def crossCorr(video):
 
     return image
 
-
 def imextendedmax(img, H):
     mask = img.copy()
     seed = mask - H
     hmax = morph.reconstruction(seed, mask, method='dilation')
     hmax = img - hmax
     # threshold and convert into a binary image
-    img_thresh_otsu = hmax > 0.8*(np.max(hmax))
+    img_thresh_otsu = hmax > 0.6*(np.max(hmax))
 
     return img_thresh_otsu
 
+def separate_mask(img, dim):
+    # get the number of connected components
+    number_components = np.max(img)
+
+    # init the array
+    masks = np.ones([dim[0], dim[1], number_components])
+    # print(masks.shape)
+
+    for i in range(number_components):
+        masks[:, :, i] = img
+        # replace values that are equal to the component number by -1
+        masks[:, :, i][masks[:, :, i] != i + 1] = 0
+        masks[:, :, i][masks[:, :, i] == i + 1] = -1
+        masks[:, :, i][masks[:, :, i] == 0] = 1
+        # replace values that are above or below the component number by 1
+        # masks[:, :, i][masks[:,:,i] > i + 1] = 1
+        # masks[:, :, i][masks[:, :, i] < i + 1] = 1
+
+    return masks
 
 def initialise(metric, radius, alpha, blur_radius):
+    '''
+    NOTE: the init method is not exactly as the MATLAB one.
+    - maxSize is not used to filter out any ROI,
+    - the np.std and std MATLAB functions do not match perfectly,
+    - the MATLAB imextendedmax function was replicated to the best of my abilities
+    but no 1 to 1 correspondance exist between python and MATLAB for this function.
+    There is an extra parameter in the python imextendedmax function controlling the
+    sensibility of the binary mask creation
+    '''
     dim = metric.shape
     maxSize = round(np.pi * pow(radius, 2) * 1.5)
     # print(maxSize)
@@ -136,18 +159,26 @@ def initialise(metric, radius, alpha, blur_radius):
     metric[np.isnan(metric)] = 0
 
     BW = imextendedmax(metric, alpha * h)
-    fig = plt.figure()
+
+    '''fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.imshow(BW, aspect='auto', interpolation='nearest')
-    plt.show()
+    plt.show()'''
 
     # perform connected component analysis
     labeled_image, count = skimage.measure.label(BW, connectivity=2, return_num=True)
-    print(count)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.imshow(labeled_image, aspect='auto', interpolation='nearest')
+    plt.show()
 
+    masks = separate_mask(labeled_image, dim)
+    '''fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.imshow(masks[:, :, 0], aspect='auto', interpolation='nearest')
+    plt.show()'''
 
-
-    return
+    return masks
 
 if __name__ == '__main__':
 
